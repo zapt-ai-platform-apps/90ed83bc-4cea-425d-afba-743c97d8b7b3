@@ -5,7 +5,9 @@ import './index.css';
 import * as Sentry from '@sentry/browser';
 import { BrowserRouter } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import { AuthProvider } from './context/AuthContext';
 import { SettingsProvider } from './context/SettingsContext';
+import { NotificationProvider } from './context/NotificationContext';
 
 Sentry.init({
   dsn: import.meta.env.VITE_PUBLIC_SENTRY_DSN,
@@ -44,10 +46,14 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     <BrowserRouter>
-      <SettingsProvider>
-        <App />
-        <Toaster position="top-right" />
-      </SettingsProvider>
+      <AuthProvider>
+        <SettingsProvider>
+          <NotificationProvider>
+            <App />
+            <Toaster position="top-right" />
+          </NotificationProvider>
+        </SettingsProvider>
+      </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>
 );

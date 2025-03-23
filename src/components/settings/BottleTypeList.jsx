@@ -1,58 +1,107 @@
 import React, { useState } from 'react';
 import { useSettings } from '@/context/SettingsContext';
+import { useAuth } from '@/context/AuthContext';
 import BottleTypeForm from './BottleTypeForm';
-import { FaEdit, FaTrash, FaPlus, FaExclamationTriangle } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaPlus, FaExclamationTriangle, FaLock } from 'react-icons/fa';
 import { Dialog } from '@headlessui/react';
 import toast from 'react-hot-toast';
 
 export default function BottleTypeList() {
-  const { waterBottleTypes, updateBottleType, deleteBottleType, addBottleType } = useSettings();
+  const { waterBottleTypes, updateBottleType, deleteBottleType, addBottleType, canEditPrices } = useSettings();
+  const { currentUser } = useAuth();
   const [editingType, setEditingType] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [typeToDelete, setTypeToDelete] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
 
   const handleEdit = (type) => {
+    if (!canEditPrices) {
+      toast.error('Only sellers can edit prices');
+      return;
+    }
     setEditingType(type);
     setShowAddForm(false);
   };
 
   const handleUpdate = (updatedData) => {
-    updateBottleType(editingType.id, updatedData);
-    setEditingType(null);
+    if (!canEditPrices) {
+      toast.error('Only sellers can edit prices');
+      return;
+    }
+    const success = updateBottleType(editingType.id, updatedData);
+    if (success) {
+      setEditingType(null);
+    } else {
+      toast.error('You do not have permission to update prices');
+    }
   };
 
   const handleAdd = (newType) => {
-    addBottleType(newType);
-    setShowAddForm(false);
+    if (!canEditPrices) {
+      toast.error('Only sellers can add bottle types');
+      return;
+    }
+    const success = addBottleType(newType);
+    if (success) {
+      setShowAddForm(false);
+    } else {
+      toast.error('You do not have permission to add bottle types');
+    }
   };
 
   const confirmDelete = (type) => {
+    if (!canEditPrices) {
+      toast.error('Only sellers can delete bottle types');
+      return;
+    }
     setTypeToDelete(type);
     setIsDeleteModalOpen(true);
   };
 
   const handleDelete = () => {
-    deleteBottleType(typeToDelete.id);
+    if (!canEditPrices) {
+      toast.error('You do not have permission to delete bottle types');
+      setIsDeleteModalOpen(false);
+      return;
+    }
+    const success = deleteBottleType(typeToDelete.id);
+    if (success) {
+      toast.success('Bottle type deleted!');
+    } else {
+      toast.error('Failed to delete bottle type');
+    }
     setIsDeleteModalOpen(false);
-    toast.success('Bottle type deleted!');
   };
 
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">Water Bottle Types</h2>
-        {!showAddForm && !editingType && (
+        {!showAddForm && !editingType && canEditPrices && (
           <button
             onClick={() => setShowAddForm(true)}
-            className="btn-primary flex items-center"
+            className="btn-primary flex items-center cursor-pointer"
           >
             <FaPlus className="mr-2" /> Add New
           </button>
         )}
       </div>
 
-      {showAddForm && (
+      {!canEditPrices && currentUser && (
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded mb-4">
+          <div className="flex items-start">
+            <FaLock className="text-yellow-600 mt-0.5 mr-3 flex-shrink-0" />
+            <div>
+              <p className="font-medium text-yellow-700">Restricted Access</p>
+              <p className="text-sm text-yellow-600">
+                Only sellers and administrators can modify water bottle types and prices.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showAddForm && canEditPrices && (
         <div className="bg-gray-50 p-4 rounded-md mb-6">
           <h3 className="text-lg font-medium mb-3">Add New Bottle Type</h3>
           <BottleTypeForm 
@@ -62,7 +111,7 @@ export default function BottleTypeList() {
         </div>
       )}
 
-      {editingType && (
+      {editingType && canEditPrices && (
         <div className="bg-gray-50 p-4 rounded-md mb-6">
           <h3 className="text-lg font-medium mb-3">Edit Bottle Type</h3>
           <BottleTypeForm 
@@ -88,20 +137,22 @@ export default function BottleTypeList() {
                 <h3 className="font-medium">{type.name}</h3>
                 <p className="text-gray-600">K{type.price.toFixed(2)}</p>
               </div>
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => handleEdit(type)}
-                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-md cursor-pointer transition-colors"
-                >
-                  <FaEdit />
-                </button>
-                <button
-                  onClick={() => confirmDelete(type)}
-                  className="p-2 text-red-600 hover:bg-red-50 rounded-md cursor-pointer transition-colors"
-                >
-                  <FaTrash />
-                </button>
-              </div>
+              {canEditPrices && (
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => handleEdit(type)}
+                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-md cursor-pointer transition-colors"
+                  >
+                    <FaEdit />
+                  </button>
+                  <button
+                    onClick={() => confirmDelete(type)}
+                    className="p-2 text-red-600 hover:bg-red-50 rounded-md cursor-pointer transition-colors"
+                  >
+                    <FaTrash />
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -132,7 +183,7 @@ export default function BottleTypeList() {
               <div className="flex justify-end space-x-3">
                 <button
                   onClick={() => setIsDeleteModalOpen(false)}
-                  className="btn-secondary"
+                  className="btn-secondary cursor-pointer"
                 >
                   Cancel
                 </button>

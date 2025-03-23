@@ -9,13 +9,18 @@ A web application for ordering water dispensers and bottles with delivery servic
 - Dynamic pricing based on product selection
 - Admin settings to configure water bottle types and prices
 - Mobile responsive design for all devices
+- User roles: Customer, Deliverer, and Admin
+- Payment type selection with tipping options
+- Order notifications for nearby deliverers
+- Employee management for admin users
+- Activity monitoring for administrators
 
 ## Technologies
 
 - React.js
 - Tailwind CSS for styling
 - Google Maps API for location services
-- Local storage for settings persistence
+- Local storage for data persistence
 
 ## Setup
 
@@ -24,17 +29,17 @@ A web application for ordering water dispensers and bottles with delivery servic
 3. Create a `.env` file with the required environment variables
 4. Run the development server with `npm run dev`
 
-## Environment Variables
+## User Roles
 
-Create a `.env` file in the root directory with the following variables:
+- **Customer**: Can place orders, view order history, and manage profile
+- **Deliverer**: Can receive order notifications, manage deliveries, and update profile
+- **Admin**: Can access admin dashboard, manage employees, modify prices, and configure app settings
 
-```
-VITE_PUBLIC_APP_ID=
-VITE_PUBLIC_APP_ENV=
-VITE_PUBLIC_SENTRY_DSN=
-VITE_PUBLIC_UMAMI_WEBSITE_ID=
-VITE_PUBLIC_GOOGLE_MAPS_API_KEY=
-```
+## Admin Access
+
+The default admin credentials are:
+- Username: Admin
+- Password: 1593
 
 ## Build
 

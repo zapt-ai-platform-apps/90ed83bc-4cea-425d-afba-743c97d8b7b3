@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
+import { useAuth } from '@/context/AuthContext';
 
 export default function BottleTypeForm({ onSubmit, initialValues = null, onCancel }) {
   const [name, setName] = useState(initialValues?.name || '');
   const [price, setPrice] = useState(initialValues?.price || '');
   const [errors, setErrors] = useState({});
+  const { isSeller } = useAuth();
 
   const validate = () => {
     const newErrors = {};
@@ -26,6 +28,11 @@ export default function BottleTypeForm({ onSubmit, initialValues = null, onCance
   const handleSubmit = (e) => {
     e.preventDefault();
     
+    if (!isSeller) {
+      toast.error('Only sellers can modify bottle types');
+      return;
+    }
+    
     if (!validate()) return;
     
     const formattedPrice = parseFloat(parseFloat(price).toFixed(2));
@@ -40,8 +47,6 @@ export default function BottleTypeForm({ onSubmit, initialValues = null, onCance
       setName('');
       setPrice('');
     }
-    
-    toast.success(initialValues ? 'Bottle type updated!' : 'Bottle type added!');
   };
 
   return (
@@ -72,7 +77,7 @@ export default function BottleTypeForm({ onSubmit, initialValues = null, onCance
           step="0.01"
           value={price}
           onChange={(e) => setPrice(e.target.value)}
-          className={`input-field ${errors.price ? 'border-red-500' : ''}`}
+          className={`input-field box-border ${errors.price ? 'border-red-500' : ''}`}
           placeholder="0.00"
         />
         {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price}</p>}
@@ -83,14 +88,14 @@ export default function BottleTypeForm({ onSubmit, initialValues = null, onCance
           <button
             type="button"
             onClick={onCancel}
-            className="btn-secondary"
+            className="btn-secondary cursor-pointer"
           >
             Cancel
           </button>
         )}
         <button
           type="submit"
-          className="btn-primary"
+          className="btn-primary cursor-pointer"
         >
           {initialValues ? 'Update' : 'Add'} Bottle Type
         </button>
